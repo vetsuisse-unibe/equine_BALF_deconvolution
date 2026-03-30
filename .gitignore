@@ -1,0 +1,14 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# macOS
+.DS_Store
+
+# Large generated outputs (regenerate with scripts)
+# Uncomment to exclude from repo:
+# *.RData
+# output/**/*.png
+# output/**/*.pdf

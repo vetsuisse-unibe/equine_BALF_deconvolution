@@ -1,0 +1,17 @@
+sequencing_id,sample_id,condition,matched_scRNA
+S_3113,A30,SEA,yes
+S_3115,A33,SEA,yes
+S_3133R,A44,SEA,yes
+S_3137,A46,CTL,yes
+S_3591,A51,CTL,yes
+S_3594,A52,SEA,yes
+S_3600,A56,SEA,yes
+S_3609,A61,,no
+S_3631,A67,,no
+S_3685,A68,SEA,yes
+S_3699,A87,,no
+S_3706,A89,CTL,yes
+S_3709,A90,CTL,yes
+S_3712,A91,CTL,yes
+S_3714,A92,,no
+S_3722,A94,,no

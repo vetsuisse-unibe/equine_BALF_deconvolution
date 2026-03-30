@@ -26,16 +26,6 @@ The pipeline:
 └── README.md
 ```
 
-## Input Data
-
-The following input files are required but not included in this repository. They should be placed in the `data/` directory or paths updated accordingly.
-
-| File | Description | Source |
-|------|-------------|--------|
-| `sc22_all_seed.rds` | Seurat object with scRNA-seq reference (60,262 cells, 6 cell types) | GEO: [accession] |
-| `merged_metadata.csv` | Cell-level metadata including cell type and subtype annotations | GEO: [accession] |
-| `merged_count_matrix_renamed.txt` | Bulk RNA-seq count matrix (15 samples, renamed IDs) | GEO: [accession] |
-| `DCC_cyto.xlsx` | Cytology differential cell counts | Supplementary data |
 
 ### Sample ID Mapping
 

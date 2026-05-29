@@ -12,3 +12,6 @@
 # *.RData
 # output/**/*.png
 # output/**/*.pdf
+
+# Generated sensitivity-analysis outputs (regenerate with scripts 06/07)
+results/

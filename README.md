@@ -17,12 +17,18 @@ The pipeline:
 
 ```
 ├── scripts/
-│   ├── 01_BayesPrism_deconvolution.R       # Main deconvolution and validation
-│   ├── 02_DEG_comparison.R                  # DEG comparison: scRNA-seq vs deconvolution
-│   ├── 03_Figure4_with_cytology.R           # Figure 4: composition with cytology overlay
-│   └── 04_generate_DEG_tables.R             # Generate filtered DEG summary tables
+│   ├── 01_BayesPrism_deconvolution.R          # Main deconvolution and validation
+│   ├── 02_DEG_comparison.R                     # DEG comparison: scRNA-seq vs deconvolution
+│   ├── 03_Figure4_with_cytology.R              # Figure 4: composition with cytology overlay
+│   ├── 04_generate_DEG_tables.R                # Generate filtered DEG summary tables
+│   ├── 05_extract_per_cell_umi.R               # Per-cell UMI extraction (input to 06/07)
+│   ├── 06_mRNA_condition_specific_scaling.R    # mRNA correction: CTL vs SEA sensitivity (Suppl. Table S6)
+│   └── 07_mRNA_LOSO.R                          # mRNA correction: leave-one-sample-out sensitivity (Suppl. Table S6)
 ├── data/
-│   └── sample_id_mapping.csv                # Sequencing ID to sample ID mapping
+│   ├── sample_id_mapping.csv                   # Sequencing ID to sample ID mapping
+│   ├── per_cell_umi.csv                        # Per-cell UMI + cell type + sample + condition (output of script 05)
+│   └── validation_real_bulk_matched.csv        # Raw BayesPrism theta + scRNA-seq cell-count truth
+├── results/                                    # Created by scripts 06 and 07
 └── README.md
 ```
 
@@ -64,6 +70,17 @@ Rscript scripts/03_Figure4_with_cytology.R
 
 # Step 4: Generate filtered DEG summary tables (requires output from Step 2)
 Rscript scripts/04_generate_DEG_tables.R
+
+# Step 5: (optional) Regenerate data/per_cell_umi.csv from the scRNA-seq object.
+# Requires sc22_all_seed.rds (~5 GB; see data accession in the manuscript).
+# A pre-computed data/per_cell_umi.csv is already provided, so Steps 6-7 can be run directly.
+Rscript scripts/05_extract_per_cell_umi.R
+
+# Step 6: mRNA-content correction sensitivity - condition-specific (CTL vs SEA) scaling (Suppl. Table S6)
+Rscript scripts/06_mRNA_condition_specific_scaling.R
+
+# Step 7: mRNA-content correction sensitivity - leave-one-sample-out cross-validation (Suppl. Table S6)
+Rscript scripts/07_mRNA_LOSO.R
 ```
 
 ### Configuration

@@ -58,58 +58,91 @@ write.csv(means, file.path(results_dir, "cibersortx_celltype_means.csv"), row.na
 print(metrics)
 print(as.data.frame(means))
 
-## ===== Figure: CIBERSORTx vs both references, plus per-cell-type means =====
-# NPG palette in sorted cell-type order, matching Figure 3
-cell_colors <- setNames(c("#E64B35","#4DBBD5","#00A087","#3C5488","#F39B7F","#8491B4"),
-                        sort(celltypes))
-th <- theme_minimal(base_size = 12) + theme(
-  plot.title = element_text(face = "bold"), axis.title = element_text(face = "bold", size = 11),
-  axis.text = element_text(size = 10, color = "black"), panel.grid.minor = element_blank(),
-  panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5), legend.position = "none")
+## ===== Figure =====
+# Cell-type palette matched to Figure 3
+cell_colors <- c(
+  "B cells"         = "#4477AA",  # blue
+  "T cells"         = "#EE6677",  # coral
+  "Mo/Ma"           = "#228833",  # green
+  "Neutrophils"     = "#CCBB44",  # gold
+  "Dendritic cells" = "#66CCEE",  # cyan
+  "Mast cells"      = "#AA3377"   # magenta
+)
+method_colors <- c("Cell counts" = "gray70", "BayesPrism" = "#228833", "CIBERSORTx" = "#E64B35")
 
-lab <- function(e, o) sprintf("r = %.2f\nrho = %.2f\nMAE = %.3f",
-                              cor(e, o), cor(e, o, method = "spearman"), mean(abs(e - o)))
+theme_publication <- theme_minimal(base_size = 12) +
+  theme(
+    plot.title       = element_text(face = "bold"),
+    axis.title       = element_text(face = "bold", size = 11),
+    axis.text        = element_text(size = 10, color = "black"),
+    panel.grid.minor = element_blank(),
+    panel.border     = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    legend.position  = "none"
+  )
 
-pA <- ggplot(m, aes(Truth, CIBERSORTx, color = CellType)) +
-  geom_point(size = 3, alpha = 0.85) +
+# r / Spearman rho / MAE label for the scatter panels
+metric_label <- function(est, obs) {
+  sprintf("r = %.2f\nρ = %.2f\nMAE = %.3f",
+          cor(est, obs), cor(est, obs, method = "spearman"), mean(abs(est - obs)))
+}
+
+# ---- Panels A and B: CIBERSORTx vs the two scRNA-seq references ----
+pA <- ggplot(m, aes(x = Truth, y = CIBERSORTx, color = CellType)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray30") +
-  scale_color_manual(values = cell_colors) + xlim(0, 1) + ylim(0, 1) + th +
-  annotate("text", x = .95, y = .05, hjust = 1, vjust = 0, size = 3.4, label = lab(m$CIBERSORTx, m$Truth)) +
-  annotate("text", x = .02, y = .98, hjust = 0, vjust = 1, size = 6, fontface = "bold", label = "A") +
-  labs(x = "Experimental scRNA-seq (cell counts)", y = "CIBERSORTx estimate")
-
-pB <- ggplot(m, aes(Truth_mRNA, CIBERSORTx, color = CellType)) +
   geom_point(size = 3, alpha = 0.85) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray30") +
-  scale_color_manual(values = cell_colors) + xlim(0, 1) + ylim(0, 1) + th +
-  annotate("text", x = .95, y = .05, hjust = 1, vjust = 0, size = 3.4, label = lab(m$CIBERSORTx, m$Truth_mRNA)) +
-  annotate("text", x = .02, y = .98, hjust = 0, vjust = 1, size = 6, fontface = "bold", label = "B") +
-  labs(x = "Experimental scRNA-seq (mRNA-weighted)", y = "CIBERSORTx estimate")
+  scale_color_manual(values = cell_colors) +
+  xlim(0, 1) + ylim(0, 1) +
+  annotate("text", x = 0.95, y = 0.05, hjust = 1, vjust = 0, size = 3.4,
+           label = metric_label(m$CIBERSORTx, m$Truth)) +
+  annotate("text", x = 0.02, y = 0.98, hjust = 0, vjust = 1, size = 6, fontface = "bold", label = "A") +
+  labs(x = "Experimental scRNA-seq (cell counts)", y = "CIBERSORTx estimate") +
+  theme_publication
 
+pB <- ggplot(m, aes(x = Truth_mRNA, y = CIBERSORTx, color = CellType)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray30") +
+  geom_point(size = 3, alpha = 0.85) +
+  scale_color_manual(values = cell_colors) +
+  xlim(0, 1) + ylim(0, 1) +
+  annotate("text", x = 0.95, y = 0.05, hjust = 1, vjust = 0, size = 3.4,
+           label = metric_label(m$CIBERSORTx, m$Truth_mRNA)) +
+  annotate("text", x = 0.02, y = 0.98, hjust = 0, vjust = 1, size = 6, fontface = "bold", label = "B") +
+  labs(x = "Experimental scRNA-seq (mRNA-weighted)", y = "CIBERSORTx estimate") +
+  theme_publication
+
+# ---- Panel C: mean proportion per cell type, by source ----
 bar <- means %>%
   pivot_longer(-CellType, names_to = "Source", values_to = "Prop") %>%
-  mutate(Source = factor(Source, levels = c("CellCounts", "BayesPrism", "CIBERSORTx"),
-                         labels = c("Cell counts", "BayesPrism", "CIBERSORTx")),
-         CellType = factor(CellType, levels = celltypes))
-pC <- ggplot(bar, aes(CellType, Prop, fill = Source)) +
-  geom_col(position = position_dodge(0.8), width = 0.75, color = "black", linewidth = 0.2) +
-  scale_fill_manual(values = c("Cell counts" = "gray70", "BayesPrism" = "#228833", "CIBERSORTx" = "#E64B35")) +
-  th + theme(legend.position = "bottom", legend.title = element_blank(),
-             axis.text.x = element_text(angle = 30, hjust = 1)) +
-  annotate("text", x = .6, y = .96, hjust = 0, vjust = 1, size = 6, fontface = "bold", label = "C") +
-  labs(x = NULL, y = "Mean proportion")
+  mutate(
+    Source   = factor(Source, levels = c("CellCounts", "BayesPrism", "CIBERSORTx"),
+                       labels = names(method_colors)),
+    CellType = factor(CellType, levels = celltypes)
+  )
 
-# Shared cell-type legend along the bottom of panels A and B, styled like Figure 3
-legend_ct <- get_legend(
-  pA + guides(color = guide_legend(override.aes = list(size = 4), nrow = 1)) +
-    labs(color = "Cell type") +
+pC <- ggplot(bar, aes(x = CellType, y = Prop, fill = Source)) +
+  geom_col(position = position_dodge(0.8), width = 0.75, color = "black", linewidth = 0.2) +
+  scale_fill_manual(values = method_colors) +
+  annotate("text", x = 0.6, y = 0.96, hjust = 0, vjust = 1, size = 6, fontface = "bold", label = "C") +
+  labs(x = NULL, y = "Mean proportion") +
+  theme_publication +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.text.x = element_text(angle = 30, hjust = 1))
+
+# Shared cell-type legend along the bottom of panels A and B (matched to Figure 3)
+cell_legend <- get_legend(
+  pA + labs(color = "Cell type") +
+    guides(color = guide_legend(nrow = 1, override.aes = list(size = 4))) +
     theme(legend.position = "bottom",
           legend.title = element_text(face = "bold", size = 10),
-          legend.text  = element_text(size = 9)))
+          legend.text  = element_text(size = 9))
+)
 
-top <- plot_grid(plot_grid(pA, pB, ncol = 2, align = "h"), legend_ct,
-                 ncol = 1, rel_heights = c(1, 0.1))
+scatter_row <- plot_grid(pA, pB, ncol = 2, align = "h")
+top <- plot_grid(scatter_row, cell_legend, ncol = 1, rel_heights = c(1, 0.1))
 fig <- plot_grid(top, pC, ncol = 1, rel_heights = c(1, 1.05))
-ggsave(file.path(results_dir, "Figure_CIBERSORTx_comparison.pdf"), fig, width = 10, height = 9, device = cairo_pdf)
-ggsave(file.path(results_dir, "Figure_CIBERSORTx_comparison.png"), fig, width = 10, height = 9, dpi = 300)
-cat("\nWrote metrics, cell-type means, and Figure_CIBERSORTx_comparison to", results_dir, "\n")
+
+ggsave(file.path(results_dir, "Figure_CIBERSORTx_comparison.pdf"), fig,
+       width = 10, height = 9, device = cairo_pdf)
+ggsave(file.path(results_dir, "Figure_CIBERSORTx_comparison.png"), fig,
+       width = 10, height = 9, dpi = 300)
+
+message("Wrote metrics, cell-type means, and Figure_CIBERSORTx_comparison to ", results_dir)

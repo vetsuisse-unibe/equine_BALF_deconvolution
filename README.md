@@ -23,12 +23,15 @@ The pipeline:
 │   ├── 04_generate_DEG_tables.R                # Generate filtered DEG summary tables
 │   ├── 05_extract_per_cell_umi.R               # Per-cell UMI extraction (input to 06/07)
 │   ├── 06_mRNA_condition_specific_scaling.R    # mRNA correction: CTL vs SEA sensitivity (Suppl. Table S6)
-│   └── 07_mRNA_LOSO.R                          # mRNA correction: leave-one-sample-out sensitivity (Suppl. Table S6)
+│   ├── 07_mRNA_LOSO.R                          # mRNA correction: leave-one-sample-out sensitivity (Suppl. Table S6)
+│   └── 08_cibersortx_comparison.R              # Second-method comparison: CIBERSORTx vs BayesPrism
 ├── data/
 │   ├── sample_id_mapping.csv                   # Sequencing ID to sample ID mapping
 │   ├── per_cell_umi.csv                        # Per-cell UMI + cell type + sample + condition (output of script 05)
-│   └── validation_real_bulk_matched.csv        # Raw BayesPrism theta + scRNA-seq cell-count truth
-├── results/                                    # Created by scripts 06 and 07
+│   ├── validation_real_bulk_matched.csv        # Raw BayesPrism theta + scRNA-seq cell-count truth
+│   ├── validation_real_bulk_all_methods.csv    # BayesPrism (raw/corrected) + cell-count and mRNA-weighted truth
+│   └── CIBERSORTx_Job3_Results.csv             # CIBERSORTx relative-mode fractions (15 bulk samples)
+├── results/                                    # Created by scripts 06-08
 └── README.md
 ```
 
@@ -81,6 +84,9 @@ Rscript scripts/06_mRNA_condition_specific_scaling.R
 
 # Step 7: mRNA-content correction sensitivity - leave-one-sample-out cross-validation (Suppl. Table S6)
 Rscript scripts/07_mRNA_LOSO.R
+
+# Step 8: Second-method comparison - CIBERSORTx vs BayesPrism against both references
+Rscript scripts/08_cibersortx_comparison.R
 ```
 
 ### Configuration
